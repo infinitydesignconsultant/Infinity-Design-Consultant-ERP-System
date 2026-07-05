@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infinity Materials ERP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --gold:#C9A84C;
+  --gold-deep:#A6842E;
+  --gold-pale:#F2E6C4;
+  --black:#0B0B0B;
+  --navy:#0B1E3D;
+  --navy-2:#132646;
+  --cream:#FAF8F3;
+  --paper:#FFFFFF;
+  --ink:#171717;
+  --muted:#6E6A5F;
+  --line:#E7E1D1;
+  --danger:#B3261E;
+  --success:#1E7A46;
+  --warn:#8A6D1A;
+  --radius:10px;
+  --shadow: 0 6px 24px rgba(11,30,61,0.08);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'DM Sans', sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:'Cormorant Garamond', serif; font-weight:700; margin:0;}
+.brand-font{font-family:'Playfair Display', serif;}
+a{color:inherit;}
+button{font-family:'DM Sans', sans-serif; cursor:pointer;}
+::selection{background:var(--gold-pale);}
+
+/* ---------- Gate screens ---------- */
+#gate{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(201,168,76,0.10), transparent 45%),
+    radial-gradient(circle at 80% 80%, rgba(201,168,76,0.08), transparent 45%),
+    var(--black);
+  padding:24px;
+}
+.gate-card{
+  width:100%;
+  max-width:420px;
+  background:var(--navy);
+  border:1px solid rgba(201,168,76,0.35);
+  border-radius:14px;
+  padding:40px 36px;
+  color:#F4F1E6;
+  box-shadow:0 30px 80px rgba(0,0,0,0.5);
+}
+.gate-logo{display:flex; align-items:center; gap:14px; margin-bottom:8px;}
+.gate-logo svg{flex-shrink:0;}
+.gate-word h1{font-size:26px; letter-spacing:2px; color:#F4F1E6; line-height:1;}
+.gate-word span{display:block; font-size:10.5px; letter-spacing:3.5px; color:var(--gold); margin-top:4px; font-family:'DM Sans'; font-weight:700;}
+.gate-tagline{font-size:12.5px; color:var(--gold-pale); letter-spacing:1px; margin:18px 0 28px; font-style:italic; font-family:'Cormorant Garamond'; font-size:17px;}
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--gold); margin-bottom:6px; font-weight:700;}
+.field input, .field select, .field textarea{
+  width:100%; padding:11px 13px; border-radius:8px; border:1px solid rgba(244,241,230,0.25);
+  background:rgba(244,241,230,0.06); color:#F4F1E6; font-size:14px; font-family:'DM Sans';
+}
+.field input::placeholder{color:rgba(244,241,230,0.4);}
+.field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--gold);}
+.btn-gold{
+  width:100%; padding:13px; border:none; border-radius:8px; background:var(--gold); color:var(--black);
+  font-weight:700; letter-spacing:0.5px; font-size:14px; margin-top:6px; transition:background 0.15s;
+}
+.btn-gold:hover{background:var(--gold-deep); color:#fff;}
+.gate-help{font-size:12px; color:rgba(244,241,230,0.55); margin-top:18px; line-height:1.6;}
+.gate-error{color:#ff9d94; font-size:13px; margin-top:10px; display:none;}
+.gate-switch{text-align:center; margin-top:18px; font-size:12.5px; color:rgba(244,241,230,0.6);}
+.gate-switch a{color:var(--gold); text-decoration:underline; cursor:pointer;}
+
+/* ---------- App shell ---------- */
+#app{display:none; min-height:100vh;}
+.shell{display:flex; min-height:100vh;}
+.sidebar{
+  width:236px; background:var(--navy); color:#F4F1E6; flex-shrink:0;
+  display:flex; flex-direction:column; position:fixed; top:0; bottom:0; left:0; z-index:20;
+}
+.sidebar-brand{padding:26px 22px 20px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(244,241,230,0.12);}
+.sidebar-brand h1{font-size:18px; letter-spacing:1.5px; color:#fff;}
+.sidebar-brand span{display:block; font-size:8.5px; letter-spacing:2.5px; color:var(--gold); font-family:'DM Sans'; font-weight:700;}
+.nav{padding:18px 12px; flex:1;}
+.nav button{
+  width:100%; text-align:left; background:none; border:none; color:rgba(244,241,230,0.75);
+  padding:12px 14px; border-radius:8px; font-size:14px; margin-bottom:4px; display:flex; align-items:center; gap:11px;
+  transition:all 0.15s; font-weight:500;
+}
+.nav button:hover{background:rgba(244,241,230,0.06); color:#fff;}
+.nav button.active{background:rgba(201,168,76,0.16); color:var(--gold);}
+.nav button svg{flex-shrink:0; opacity:0.9;}
+.sidebar-foot{padding:16px 20px 22px; border-top:1px solid rgba(244,241,230,0.12); font-size:11.5px; color:rgba(244,241,230,0.45);}
+.sidebar-foot button{background:none; border:1px solid rgba(244,241,230,0.25); color:rgba(244,241,230,0.8); padding:8px 10px; border-radius:6px; font-size:12px; width:100%; margin-top:10px;}
+.sidebar-foot button:hover{border-color:var(--gold); color:var(--gold);}
+
+.main{margin-left:236px; flex:1; min-width:0;}
+.topbar{
+  background:var(--paper); border-bottom:1px solid var(--line); padding:16px 32px;
+  display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:10;
+}
+.topbar h2{font-size:24px; color:var(--navy);}
+.topbar-meta{font-size:12px; color:var(--muted); display:flex; align-items:center; gap:16px;}
+.dot{width:8px; height:8px; border-radius:50%; background:var(--success); display:inline-block; margin-right:6px;}
+.dot.syncing{background:var(--warn);}
+.content{padding:28px 32px 60px;}
+
+/* ---------- Common UI ---------- */
+.kpi-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-bottom:28px;}
+.kpi-card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow); position:relative; overflow:hidden;}
+.kpi-card::before{content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--gold);}
+.kpi-label{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-weight:700; margin-bottom:8px;}
+.kpi-value{font-size:26px; font-family:'Cormorant Garamond'; font-weight:700; color:var(--navy);}
+.kpi-sub{font-size:11.5px; color:var(--muted); margin-top:4px;}
+.kpi-card.warn .kpi-value{color:var(--warn);}
+.kpi-card.danger .kpi-value{color:var(--danger);}
+.kpi-card.success .kpi-value{color:var(--success);}
+
+.panel{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:24px;}
+.panel-head{padding:18px 22px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;}
+.panel-head h3{font-size:19px; color:var(--navy);}
+.panel-body{padding:22px;}
+.charts-grid{display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:24px;}
+@media (max-width: 900px){.charts-grid{grid-template-columns:1fr;}}
+
+.btn{padding:9px 16px; border-radius:7px; border:1px solid var(--line); background:var(--paper); font-size:13px; font-weight:600; color:var(--ink); display:inline-flex; align-items:center; gap:6px;}
+.btn:hover{border-color:var(--navy);}
+.btn-primary{background:var(--navy); color:#fff; border-color:var(--navy);}
+.btn-primary:hover{background:var(--navy-2);}
+.btn-accent{background:var(--gold); color:var(--black); border-color:var(--gold);}
+.btn-accent:hover{background:var(--gold-deep); color:#fff;}
+.btn-danger{background:#fff; color:var(--danger); border-color:#f0c9c5;}
+.btn-danger:hover{background:#fdecea;}
+.btn-sm{padding:6px 10px; font-size:12px;}
+
+table{width:100%; border-collapse:collapse; font-size:13.5px;}
+th{text-align:left; padding:10px 12px; background:var(--cream); color:var(--navy); font-size:11px; text-transform:uppercase; letter-spacing:0.6px; border-bottom:2px solid var(--line); white-space:nowrap;}
+td{padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap;}
+tbody tr:hover{background:rgba(201,168,76,0.06);}
+.table-wrap{overflow-x:auto;}
+.num{text-align:right; font-variant-numeric:tabular-nums;}
+tfoot td{font-weight:700; background:var(--cream); border-top:2px solid var(--gold); color:var(--navy);}
+
+.badge{display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700;}
+.badge.ok{background:#e4f3ea; color:var(--success);}
+.badge.due{background:#fdf1e0; color:var(--warn);}
+
+.form-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:14px;}
+.form-field label{display:block; font-size:11.5px; font-weight:700; color:var(--navy); margin-bottom:6px; letter-spacing:0.3px;}
+.form-field input, .form-field select, .form-field textarea{
+  width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:7px; font-size:13.5px; font-family:'DM Sans'; background:#fff;
+}
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus{outline:none; border-color:var(--gold);}
+
+.modal-overlay{position:fixed; inset:0; background:rgba(11,11,11,0.55); display:none; align-items:center; justify-content:center; z-index:100; padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff; border-radius:12px; width:100%; max-width:520px; max-height:88vh; overflow-y:auto; box-shadow:0 30px 80px rgba(0,0,0,0.35);}
+.modal-head{padding:18px 22px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;}
+.modal-head h3{color:var(--navy);}
+.modal-body{padding:22px;}
+.modal-foot{padding:16px 22px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:10px;}
+.icon-btn{background:none; border:none; font-size:20px; color:var(--muted); line-height:1;}
+.icon-btn:hover{color:var(--danger);}
+
+.empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
+.empty-state h3{color:var(--navy); margin-bottom:8px;}
+.toast{position:fixed; bottom:24px; right:24px; background:var(--navy); color:#fff; padding:13px 20px; border-radius:8px; font-size:13.5px; box-shadow:0 10px 30px rgba(0,0,0,0.25); z-index:200; opacity:0; transform:translateY(10px); transition:all 0.25s; border-left:4px solid var(--gold);}
+.toast.show{opacity:1; transform:translateY(0);}
+.toast.err{border-left-color:var(--danger);}
+
+.filters-row{display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom:16px;}
+.pill-tabs{display:flex; gap:6px; background:var(--cream); padding:4px; border-radius:8px;}
+.pill-tabs button{background:none; border:none; padding:7px 14px; border-radius:6px; font-size:12.5px; font-weight:700; color:var(--muted);}
+.pill-tabs button.active{background:#fff; color:var(--navy); box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+
+@media print{
+  .sidebar, .topbar, .no-print{display:none !important;}
+  .main{margin-left:0 !important;}
+  body{background:#fff;}
+  .panel{box-shadow:none; border:1px solid #ccc;}
+}
+@media (max-width: 820px){
+  .sidebar{transform:translateX(-100%); transition:transform 0.2s;}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .content{padding:20px 16px 40px;}
+  .topbar{padding:14px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ GATE: setup / connect ============ -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">
+      <svg width="44" height="44" viewBox="0 0 60 60" fill="none">
+        <path d="M18 20 C8 20 8 40 18 40 C26 40 26 20 34 20 M34 20 C24 20 24 40 34 40 C44 40 44 20 34 40" stroke="#C9A84C" stroke-width="3.2" stroke-linecap="round"/>
+      </svg>
+      <div class="gate-word">
+        <h1>INFINITY</h1>
+        <span>DESIGN &amp; CONSULTANT</span>
+      </div>
+    </div>
+    <div class="gate-tagline">"Infinity Ideas, Exceptional Results"</div>
+
+    <div id="gate-setup">
+      <div class="field">
+        <label>Apps Script Web App URL</label>
+        <input id="setup-url" type="text" placeholder="https://script.google.com/macros/s/xxxxx/exec">
+      </div>
+      <div class="field">
+        <label>Set a team access PIN</label>
+        <input id="setup-pin" type="password" placeholder="e.g. Infinity2024">
+      </div>
+      <button class="btn-gold" onclick="ERP.saveSetup()">Connect &amp; Continue</button>
+      <div class="gate-error" id="setup-error"></div>
+      <div class="gate-help">First time setup only. This connects the ERP to your shared Google Sheet database. See SETUP-GUIDE.md for how to create this URL. Once connected, everyone on your team enters the same URL and PIN on their own device.</div>
+    </div>
+
+    <div id="gate-login" style="display:none;">
+      <div class="field">
+        <label>Your Name</label>
+        <input id="login-name" type="text" placeholder="e.g. Amjad Hossain">
+      </div>
+      <div class="field">
+        <label>Access PIN</label>
+        <input id="login-pin" type="password" placeholder="Enter team PIN">
+      </div>
+      <button class="btn-gold" onclick="ERP.login()">Enter ERP</button>
+      <div class="gate-error" id="login-error"></div>
+      <div class="gate-switch">Wrong workspace? <a onclick="ERP.resetSetup()">Reconnect to a different sheet</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div id="app">
+  <div class="shell">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <svg width="30" height="30" viewBox="0 0 60 60" fill="none">
+          <path d="M18 20 C8 20 8 40 18 40 C26 40 26 20 34 20 M34 20 C24 20 24 40 34 40 C44 40 44 20 34 40" stroke="#C9A84C" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <h1>INFINITY</h1>
+          <span>MATERIALS ERP</span>
+        </div>
+      </div>
+      <div class="nav">
+        <button data-view="dashboard" class="active" onclick="ERP.goTo('dashboard')">📊 &nbsp;Dashboard</button>
+        <button data-view="materials" onclick="ERP.goTo('materials')">🧱 &nbsp;Materials &amp; BOQ</button>
+        <button data-view="entry" onclick="ERP.goTo('entry')">📥 &nbsp;Materials Received</button>
+        <button data-view="reports" onclick="ERP.goTo('reports')">📑 &nbsp;Reports</button>
+        <button data-view="settings" onclick="ERP.goTo('settings')">⚙️ &nbsp;Settings</button>
+      </div>
+      <div class="sidebar-foot">
+        Signed in as <b id="foot-username">—</b>
+        <button onclick="ERP.logout()">Lock / Switch User</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <h2 id="page-title">Dashboard</h2>
+        <div class="topbar-meta">
+          <span><span class="dot" id="sync-dot"></span><span id="sync-text">Live</span></span>
+          <button class="btn btn-sm no-print" onclick="ERP.refresh()">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="content" id="view-root"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== calc.js ===== */
+/* =========================================================================
+   Calc — all derived numbers computed fresh from Materials + Entries.
+   Single source of truth: every report reads from the same Entries table.
+   ========================================================================= */
+const Calc = (function () {
+
+  function materialById(id) {
+    return ERP.state.materials.find(m => m.id === id);
+  }
+
+  function entriesForMaterial(id) {
+    return ERP.state.entries.filter(e => e.materialId === id);
+  }
+
+  function materialStats(m) {
+    const rows = entriesForMaterial(m.id);
+    const boqAmount = m.boqQty * m.boqPrice;
+    const receivedQty = rows.reduce((s, r) => s + r.qty, 0);
+    const receivedValue = rows.reduce((s, r) => s + r.value, 0);
+    const advance = rows.reduce((s, r) => s + r.advance, 0);
+    const credit = rows.reduce((s, r) => s + r.credit, 0);
+    const actual = rows.reduce((s, r) => s + r.actualPayment, 0);
+    const due = rows.reduce((s, r) => s + r.due, 0);
+    const remainingQty = m.boqQty - receivedQty;
+    const remainingValue = boqAmount - receivedValue;
+    return {
+      material: m, boqAmount, receivedQty, receivedValue,
+      advance, credit, actual, due,
+      outstanding: credit + due,
+      paidOut: advance + actual,
+      remainingQty, remainingValue,
+      pctReceived: boqAmount ? (receivedValue / boqAmount) * 100 : 0
+    };
+  }
+
+  function allMaterialStats() {
+    return ERP.state.materials.map(materialStats);
+  }
+
+  function totals() {
+    const stats = allMaterialStats();
+    const t = {
+      boqAmount: 0, receivedQty: 0, receivedValue: 0, advance: 0, credit: 0,
+      actual: 0, due: 0, outstanding: 0, paidOut: 0, remainingValue: 0
+    };
+    stats.forEach(s => {
+      t.boqAmount += s.boqAmount;
+      t.receivedValue += s.receivedValue;
+      t.advance += s.advance;
+      t.credit += s.credit;
+      t.actual += s.actual;
+      t.due += s.due;
+      t.outstanding += s.outstanding;
+      t.paidOut += s.paidOut;
+      t.remainingValue += s.remainingValue;
+    });
+    t.pctReceived = t.boqAmount ? (t.receivedValue / t.boqAmount) * 100 : 0;
+    return t;
+  }
+
+  function monthlySummary() {
+    const map = {};
+    ERP.state.entries.forEach(e => {
+      const month = (e.date || '').slice(0, 7); // YYYY-MM
+      if (!month) return;
+      if (!map[month]) map[month] = { month, count: 0, value: 0, advance: 0, credit: 0, actual: 0, due: 0 };
+      map[month].count += 1;
+      map[month].value += e.value;
+      map[month].advance += e.advance;
+      map[month].credit += e.credit;
+      map[month].actual += e.actualPayment;
+      map[month].due += e.due;
+    });
+    return Object.values(map).sort((a, b) => a.month.localeCompare(b.month));
+  }
+
+  function monthLabel(ym) {
+    if (!ym) return '';
+    const [y, m] = ym.split('-');
+    const d = new Date(Number(y), Number(m) - 1, 1);
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  return { materialById, entriesForMaterial, materialStats, allMaterialStats, totals, monthlySummary, monthLabel };
+})();
+
+
+/* ===== charts.js ===== */
+const Charts = (function () {
+  const GOLD = '#C9A84C';
+  const NAVY = '#0B1E3D';
+  const NAVY2 = '#8C9BB5';
+  const WARN = '#8A6D1A';
+  const DANGER = '#B3261E';
+  const SUCCESS = '#1E7A46';
+
+  function destroy(key) {
+    if (ERP.state.charts[key]) { ERP.state.charts[key].destroy(); delete ERP.state.charts[key]; }
+  }
+
+  function renderDashboardCharts() {
+    const stats = Calc.allMaterialStats().sort((a, b) => b.boqAmount - a.boqAmount).slice(0, 8);
+    const ctx1 = document.getElementById('chartBoqVsReceived');
+    if (ctx1) {
+      destroy('boqVsReceived');
+      ERP.state.charts.boqVsReceived = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: stats.map(s => s.material.name.length > 18 ? s.material.name.slice(0, 16) + '…' : s.material.name),
+          datasets: [
+            { label: 'BOQ Amount', data: stats.map(s => s.boqAmount), backgroundColor: NAVY2, borderRadius: 4 },
+            { label: 'Received Value', data: stats.map(s => s.receivedValue), backgroundColor: GOLD, borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { family: 'DM Sans' } } } },
+          scales: {
+            x: { ticks: { font: { family: 'DM Sans', size: 10.5 } } },
+            y: { ticks: { callback: v => 'BDT ' + (v / 1000000).toFixed(1) + 'M' } }
+          }
+        }
+      });
+    }
+    const t = Calc.totals();
+    const ctx2 = document.getElementById('chartPayment');
+    if (ctx2) {
+      destroy('payment');
+      ERP.state.charts.payment = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['Advance Paid', 'Actual Payment', 'Credit (owed)', 'Due (owed)'],
+          datasets: [{ data: [t.advance, t.actual, t.credit, t.due], backgroundColor: [NAVY, GOLD, WARN, DANGER], borderWidth: 2, borderColor: '#fff' }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { family: 'DM Sans' }, boxWidth: 12 } } }
+        }
+      });
+    }
+  }
+
+  return { renderDashboardCharts };
+})();
+
+
+/* ===== views_dashboard.js ===== */
+var Views = window.Views || {};
+
+(function () {
+
+  // ================= DASHBOARD =================
+  Views.dashboard = function () {
+    if (ERP.state.materials.length === 0) {
+      return Views._emptyState('No materials yet', 'Add your BOQ materials to see live dashboard figures.', 'Go to Materials & BOQ', "ERP.goTo('materials')");
+    }
+    const t = Calc.totals();
+    return `
+      <div class="kpi-grid">
+        ${Views._kpi('Total BOQ Amount', 'BDT ' + ERP.fmt(t.boqAmount), 'Sum of all material BOQ values')}
+        ${Views._kpi('Total Received Value', 'BDT ' + ERP.fmt(t.receivedValue), t.pctReceived.toFixed(2) + '% of BOQ')}
+        ${Views._kpi('Remaining BOQ Value', 'BDT ' + ERP.fmt(t.remainingValue), (100 - t.pctReceived).toFixed(2) + '% remaining')}
+        ${Views._kpi('Total Paid Out', 'BDT ' + ERP.fmt(t.paidOut), 'Advance + Actual Payment', 'success')}
+        ${Views._kpi('Total Outstanding', 'BDT ' + ERP.fmt(t.outstanding), 'Credit + Due', t.outstanding > 0 ? 'warn' : '')}
+        ${Views._kpi('Total Advance Paid', 'BDT ' + ERP.fmt(t.advance), 'Paid ahead of delivery')}
+        ${Views._kpi('Total Credit', 'BDT ' + ERP.fmt(t.credit), 'Deferred to supplier credit')}
+        ${Views._kpi('Total Due', 'BDT ' + ERP.fmt(t.due), 'Owed on received materials', t.due > 0 ? 'danger' : '')}
+      </div>
+      <div class="charts-grid">
+        <div class="panel">
+          <div class="panel-head"><h3>BOQ vs Received — Top Materials by Value</h3></div>
+          <div class="panel-body"><canvas id="chartBoqVsReceived" height="260"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Payment Breakdown</h3></div>
+          <div class="panel-body"><canvas id="chartPayment" height="260"></canvas></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Materials Progress</h3>
+          <button class="btn btn-sm" onclick="ERP.goTo('reports')">View full report →</button>
+        </div>
+        <div class="panel-body table-wrap">
+          ${Views._topProgressTable()}
+        </div>
+      </div>
+    `;
+  };
+
+  Views._kpi = function (label, value, sub, cls) {
+    return `<div class="kpi-card ${cls || ''}">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-value">${value}</div>
+      <div class="kpi-sub">${sub || ''}</div>
+    </div>`;
+  };
+
+  Views._topProgressTable = function () {
+    const stats = Calc.allMaterialStats().sort((a, b) => b.pctReceived - a.pctReceived).slice(0, 8);
+    if (stats.length === 0) return '<p style="color:var(--muted)">No data yet.</p>';
+    let rows = stats.map(s => `
+      <tr>
+        <td>${ERP.escapeHtml(s.material.name)}</td>
+        <td class="num">${ERP.fmt(s.boqAmount)}</td>
+        <td class="num">${ERP.fmt(s.receivedValue)}</td>
+        <td class="num">${s.pctReceived.toFixed(1)}%</td>
+        <td class="num">${ERP.fmt(s.outstanding)}</td>
+      </tr>`).join('');
+    return `<table>
+      <thead><tr><th>Material</th><th class="num">BOQ Amount</th><th class="num">Received Value</th><th class="num">% Complete</th><th class="num">Outstanding</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  };
+
+  Views._emptyState = function (title, sub, cta, onclick) {
+    return `<div class="empty-state">
+      <h3>${title}</h3>
+      <p>${sub}</p>
+      ${cta ? `<button class="btn btn-primary" onclick="${onclick}" style="margin-top:14px;">${cta}</button>` : ''}
+    </div>`;
+  };
+
+})();
+
+
+/* ===== views_materials.js ===== */
+var Views = window.Views || {};
+
+(function () {
+
+  Views.materials = function () {
+    const mats = ERP.state.materials.slice().sort((a, b) => a.name.localeCompare(b.name));
+    const totalBoq = mats.reduce((s, m) => s + m.boqQty * m.boqPrice, 0);
+
+    let rows = mats.map(m => `
+      <tr>
+        <td>${ERP.escapeHtml(m.name)}</td>
+        <td>${ERP.escapeHtml(m.unit)}</td>
+        <td class="num">${ERP.fmtQty(m.boqQty)}</td>
+        <td class="num">${ERP.fmt(m.boqPrice)}</td>
+        <td class="num">${ERP.fmt(m.boqQty * m.boqPrice)}</td>
+        <td class="num">${ERP.fmt(m.updatePrice)}</td>
+        <td class="num">
+          <button class="btn btn-sm" onclick="Actions.openMaterialModal('${m.id}')">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="Actions.confirmDeleteMaterial('${m.id}')">Delete</button>
+        </td>
+      </tr>`).join('');
+
+    if (mats.length === 0) {
+      return Views._emptyState('No materials in your BOQ yet', 'Add your first material, or load the standard 36-item BOQ list.', 'Add Material', "Actions.openMaterialModal()")
+        + `<div style="text-align:center; margin-top:-8px;"><button class="btn" onclick="Actions.loadSeedMaterials()">Load Original 36 Materials</button></div>`;
+    }
+
+    return `
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Materials &amp; BOQ Master (${mats.length} items)</h3>
+          <button class="btn btn-accent" onclick="Actions.openMaterialModal()">+ Add Material</button>
+        </div>
+        <div class="panel-body table-wrap">
+          <table>
+            <thead><tr><th>Material</th><th>Unit</th><th class="num">BOQ Qty</th><th class="num">BOQ Unit Price</th><th class="num">BOQ Amount</th><th class="num">Current Price</th><th class="num">Actions</th></tr></thead>
+            <tbody>${rows}</tbody>
+            <tfoot><tr><td colspan="4">Total BOQ Amount</td><td class="num">BDT ${ERP.fmt(totalBoq)}</td><td colspan="2"></td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+    `;
+  };
+
+  Views.materialModal = function (id) {
+    const m = id ? Calc.materialById(id) : null;
+    return `
+      <div class="modal-head">
+        <h3>${m ? 'Edit Material' : 'Add Material'}</h3>
+        <button class="icon-btn" onclick="Actions.closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="mat-id" value="${m ? m.id : ''}">
+        <div class="form-grid">
+          <div class="form-field" style="grid-column:1/-1;">
+            <label>Material Name</label>
+            <input id="mat-name" type="text" value="${m ? ERP.escapeHtml(m.name) : ''}" placeholder="e.g. Cement">
+          </div>
+          <div class="form-field">
+            <label>Unit</label>
+            <input id="mat-unit" type="text" value="${m ? ERP.escapeHtml(m.unit) : ''}" placeholder="e.g. Bag">
+          </div>
+          <div class="form-field">
+            <label>BOQ Quantity</label>
+            <input id="mat-boqqty" type="number" step="any" value="${m ? m.boqQty : ''}">
+          </div>
+          <div class="form-field">
+            <label>BOQ Unit Price (BDT)</label>
+            <input id="mat-boqprice" type="number" step="any" value="${m ? m.boqPrice : ''}">
+          </div>
+          <div class="form-field">
+            <label>Current Market Price (BDT)</label>
+            <input id="mat-updateprice" type="number" step="any" value="${m ? m.updatePrice : (m ? m.boqPrice : '')}">
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" onclick="Actions.closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="Actions.saveMaterialForm()">Save Material</button>
+      </div>
+    `;
+  };
+
+})();
+
+
+/* ===== views_entry.js ===== */
+var Views = window.Views || {};
+
+(function () {
+
+  Views.entry = function () {
+    if (ERP.state.materials.length === 0) {
+      return Views._emptyState('Add materials first', 'You need at least one material in your BOQ before logging received quantities.', 'Go to Materials & BOQ', "ERP.goTo('materials')");
+    }
+    const matOptions = ERP.state.materials.slice().sort((a, b) => a.name.localeCompare(b.name))
+      .map(m => `<option value="${m.id}" data-price="${m.updatePrice}" data-unit="${ERP.escapeHtml(m.unit)}">${ERP.escapeHtml(m.name)}</option>`).join('');
+
+    return `
+      <div class="panel">
+        <div class="panel-head"><h3>Log Materials Received</h3></div>
+        <div class="panel-body">
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Date</label>
+              <input id="en-date" type="date" value="${ERP.todayStr()}">
+            </div>
+            <div class="form-field" style="grid-column:span 2;">
+              <label>Material</label>
+              <select id="en-material" onchange="Actions.updateEntryPreview()">${matOptions}</select>
+            </div>
+            <div class="form-field">
+              <label>Unit Price (BDT)</label>
+              <input id="en-price" type="number" step="any" onchange="Actions.updateEntryPreview()">
+            </div>
+            <div class="form-field">
+              <label>Quantity Received</label>
+              <input id="en-qty" type="number" step="any" value="0" oninput="Actions.updateEntryPreview()">
+            </div>
+            <div class="form-field">
+              <label>Advance Payment (BDT)</label>
+              <input id="en-advance" type="number" step="any" value="0" oninput="Actions.updateEntryPreview()">
+            </div>
+            <div class="form-field">
+              <label>Credit Payment (BDT)</label>
+              <input id="en-credit" type="number" step="any" value="0" oninput="Actions.updateEntryPreview()">
+            </div>
+            <div class="form-field">
+              <label>Actual Payment (BDT)</label>
+              <input id="en-actual" type="number" step="any" value="0" oninput="Actions.updateEntryPreview()">
+            </div>
+            <div class="form-field" style="grid-column:1/-1;">
+              <label>Remarks</label>
+              <input id="en-remarks" type="text" placeholder="Optional note, e.g. supplier / challan no.">
+            </div>
+          </div>
+          <div style="margin-top:16px; padding:14px 16px; background:var(--cream); border-radius:8px; display:flex; gap:28px; flex-wrap:wrap; font-size:13.5px;">
+            <div><b>Value:</b> BDT <span id="en-preview-value">0</span></div>
+            <div><b>Due (auto):</b> BDT <span id="en-preview-due">0</span></div>
+            <div style="color:var(--muted);">Entered by: <b>${ERP.escapeHtml(ERP.state.userName)}</b></div>
+          </div>
+          <button class="btn btn-accent" style="margin-top:16px;" onclick="Actions.submitEntry()">+ Save Entry</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Recent Entries</h3>
+          <div class="filters-row" style="margin:0;">
+            <select id="filter-material" onchange="Views.rerenderEntryTable()" style="padding:7px 10px; border-radius:6px; border:1px solid var(--line); font-size:13px;">
+              <option value="">All Materials</option>
+              ${matOptions.replace(/data-price="[^"]*" data-unit="[^"]*"/g, '')}
+            </select>
+            <button class="btn btn-sm" onclick="Actions.exportEntriesCSV()">Export CSV</button>
+          </div>
+        </div>
+        <div class="panel-body table-wrap" id="entries-table-wrap">
+          ${Views._entriesTable()}
+        </div>
+      </div>
+    `;
+  };
+
+  Views._entriesTable = function (filterMaterial) {
+    let rows = ERP.state.entries.slice().sort((a, b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt));
+    if (filterMaterial) rows = rows.filter(e => e.materialId === filterMaterial);
+    rows = rows.slice(0, 100);
+    if (rows.length === 0) return '<p style="color:var(--muted); padding:10px 0;">No entries logged yet.</p>';
+    const trs = rows.map(e => {
+      const m = Calc.materialById(e.materialId);
+      return `<tr>
+        <td>${e.date}</td>
+        <td>${m ? ERP.escapeHtml(m.name) : '—'}</td>
+        <td class="num">${ERP.fmtQty(e.qty)} ${m ? ERP.escapeHtml(m.unit) : ''}</td>
+        <td class="num">${ERP.fmt(e.value)}</td>
+        <td class="num">${ERP.fmt(e.advance)}</td>
+        <td class="num">${ERP.fmt(e.credit)}</td>
+        <td class="num">${ERP.fmt(e.actualPayment)}</td>
+        <td class="num">${e.due > 0 ? `<span class="badge due">${ERP.fmt(e.due)}</span>` : `<span class="badge ok">Settled</span>`}</td>
+        <td>${ERP.escapeHtml(e.enteredBy)}</td>
+        <td class="num">
+          <button class="btn btn-sm" onclick="Actions.deleteEntry('${e.id}')">Delete</button>
+        </td>
+      </tr>`;
+    }).join('');
+    return `<table>
+      <thead><tr><th>Date</th><th>Material</th><th class="num">Qty</th><th class="num">Value</th><th class="num">Advance</th><th class="num">Credit</th><th class="num">Actual</th><th class="num">Due</th><th>By</th><th class="num">Actions</th></tr></thead>
+      <tbody>${trs}</tbody>
+    </table>`;
+  };
+
+  Views.rerenderEntryTable = function () {
+    const val = document.getElementById('filter-material').value;
+    document.getElementById('entries-table-wrap').innerHTML = Views._entriesTable(val);
+  };
+
+})();
+
+
+/* ===== views_reports.js ===== */
+var Views = window.Views || {};
+
+(function () {
+  let activeTab = 'boq';
+
+  Views.reports = function () {
+    return `
+      <div class="pill-tabs no-print" style="margin-bottom:18px;">
+        <button class="${activeTab === 'boq' ? 'active' : ''}" onclick="Views.setReportTab('boq')">BOQ Summary</button>
+        <button class="${activeTab === 'monthly' ? 'active' : ''}" onclick="Views.setReportTab('monthly')">Monthly Summary</button>
+      </div>
+      <div id="report-body">${activeTab === 'boq' ? Views._boqReport() : Views._monthlyReport()}</div>
+    `;
+  };
+
+  Views.setReportTab = function (tab) {
+    activeTab = tab;
+    ERP.render();
+  };
+
+  Views._boqReport = function () {
+    if (ERP.state.materials.length === 0) return Views._emptyState('No data yet', 'Add materials to generate the BOQ summary report.');
+    const stats = Calc.allMaterialStats().sort((a, b) => a.material.name.localeCompare(b.material.name));
+    const t = Calc.totals();
+    const rows = stats.map((s, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${ERP.escapeHtml(s.material.name)}</td>
+        <td>${ERP.escapeHtml(s.material.unit)}</td>
+        <td class="num">${ERP.fmtQty(s.material.boqQty)}</td>
+        <td class="num">${ERP.fmt(s.boqAmount)}</td>
+        <td class="num">${ERP.fmtQty(s.receivedQty)}</td>
+        <td class="num">${ERP.fmt(s.receivedValue)}</td>
+        <td class="num">${s.pctReceived.toFixed(1)}%</td>
+        <td class="num">${ERP.fmt(s.remainingValue)}</td>
+        <td class="num">${ERP.fmt(s.advance)}</td>
+        <td class="num">${ERP.fmt(s.credit)}</td>
+        <td class="num">${ERP.fmt(s.actual)}</td>
+        <td class="num">${ERP.fmt(s.due)}</td>
+        <td class="num">${ERP.fmt(s.outstanding)}</td>
+      </tr>`).join('');
+    return `
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Materials BOQ Overall Summary Report</h3>
+          <div class="no-print" style="display:flex; gap:8px;">
+            <button class="btn btn-sm" onclick="window.print()">🖨 Print</button>
+            <button class="btn btn-sm" onclick="Actions.exportBoqCSV()">Export CSV</button>
+          </div>
+        </div>
+        <div class="panel-body table-wrap">
+          <table>
+            <thead><tr>
+              <th>SL</th><th>Material</th><th>Unit</th>
+              <th class="num">BOQ Qty</th><th class="num">BOQ Amount</th>
+              <th class="num">Received Qty</th><th class="num">Received Value</th><th class="num">% of BOQ</th>
+              <th class="num">Remaining Value</th>
+              <th class="num">Advance</th><th class="num">Credit</th><th class="num">Actual Paid</th><th class="num">Due</th><th class="num">Outstanding</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+            <tfoot><tr>
+              <td colspan="4">TOTAL</td>
+              <td class="num">${ERP.fmt(t.boqAmount)}</td>
+              <td></td>
+              <td class="num">${ERP.fmt(t.receivedValue)}</td>
+              <td class="num">${t.pctReceived.toFixed(1)}%</td>
+              <td class="num">${ERP.fmt(t.remainingValue)}</td>
+              <td class="num">${ERP.fmt(t.advance)}</td>
+              <td class="num">${ERP.fmt(t.credit)}</td>
+              <td class="num">${ERP.fmt(t.actual)}</td>
+              <td class="num">${ERP.fmt(t.due)}</td>
+              <td class="num">${ERP.fmt(t.outstanding)}</td>
+            </tr></tfoot>
+          </table>
+        </div>
+      </div>
+    `;
+  };
+
+  Views._monthlyReport = function () {
+    const months = Calc.monthlySummary();
+    if (months.length === 0) return Views._emptyState('No entries yet', 'Log materials received to generate the monthly summary.');
+    const totals = months.reduce((t, m) => ({
+      count: t.count + m.count, value: t.value + m.value, advance: t.advance + m.advance,
+      credit: t.credit + m.credit, actual: t.actual + m.actual, due: t.due + m.due
+    }), { count: 0, value: 0, advance: 0, credit: 0, actual: 0, due: 0 });
+    const rows = months.map(m => `
+      <tr>
+        <td>${Calc.monthLabel(m.month)}</td>
+        <td class="num">${m.count}</td>
+        <td class="num">${ERP.fmt(m.value)}</td>
+        <td class="num">${ERP.fmt(m.advance)}</td>
+        <td class="num">${ERP.fmt(m.credit)}</td>
+        <td class="num">${ERP.fmt(m.actual)}</td>
+        <td class="num">${ERP.fmt(m.due)}</td>
+      </tr>`).join('');
+    return `
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Month-Wise Materials Received Summary</h3>
+          <div class="no-print" style="display:flex; gap:8px;">
+            <button class="btn btn-sm" onclick="window.print()">🖨 Print</button>
+            <button class="btn btn-sm" onclick="Actions.exportMonthlyCSV()">Export CSV</button>
+          </div>
+        </div>
+        <div class="panel-body table-wrap">
+          <table>
+            <thead><tr><th>Month</th><th class="num">Entries</th><th class="num">Total Value</th><th class="num">Advance</th><th class="num">Credit</th><th class="num">Actual Paid</th><th class="num">Due</th></tr></thead>
+            <tbody>${rows}</tbody>
+            <tfoot><tr><td>TOTAL</td><td class="num">${totals.count}</td><td class="num">${ERP.fmt(totals.value)}</td><td class="num">${ERP.fmt(totals.advance)}</td><td class="num">${ERP.fmt(totals.credit)}</td><td class="num">${ERP.fmt(totals.actual)}</td><td class="num">${ERP.fmt(totals.due)}</td></tr></tfoot>
+          </table>
+        </div>
+      </div>
+    `;
+  };
+
+})();
+
+
+/* ===== views_settings.js ===== */
+var Views = window.Views || {};
+
+(function () {
+
+  Views.settings = function () {
+    const masked = ERP.state.apiUrl ? ERP.state.apiUrl.slice(0, 42) + '…' : '—';
+    return `
+      <div class="panel">
+        <div class="panel-head"><h3>Connection</h3></div>
+        <div class="panel-body">
+          <div class="form-grid">
+            <div class="form-field" style="grid-column:1/-1;">
+              <label>Connected Google Sheet (Apps Script Web App URL)</label>
+              <input type="text" value="${ERP.escapeHtml(masked)}" disabled>
+            </div>
+          </div>
+          <p style="color:var(--muted); font-size:13px; margin-top:10px;">All team members must use this same URL and PIN to see the same shared data.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Team Access</h3></div>
+        <div class="panel-body">
+          <p style="font-size:13.5px; color:var(--muted); margin-bottom:14px;">Signed in as <b>${ERP.escapeHtml(ERP.state.userName)}</b></p>
+          <button class="btn" onclick="ERP.logout()">Lock &amp; Switch User</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3 style="color:var(--danger);">Danger Zone</h3></div>
+        <div class="panel-body">
+          <p style="font-size:13.5px; color:var(--muted); margin-bottom:14px;">Disconnect this device from the current workspace. Your data in the Google Sheet is not deleted — you can reconnect any time with the same URL.</p>
+          <button class="btn btn-danger" onclick="Actions.confirmDisconnect()">Disconnect This Device</button>
+        </div>
+      </div>
+    `;
+  };
+
+})();
+
+
+/* ===== actions.js ===== */
+const Actions = (function () {
+
+  function openModal(html) {
+    document.getElementById('modal').innerHTML = html;
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.getElementById('modal').innerHTML = '';
+  }
+
+  // ---------------- Materials CRUD ----------------
+  function openMaterialModal(id) {
+    openModal(Views.materialModal(id));
+  }
+
+  async function saveMaterialForm() {
+    const id = document.getElementById('mat-id').value;
+    const name = document.getElementById('mat-name').value.trim();
+    const unit = document.getElementById('mat-unit').value.trim();
+    const boqQty = parseFloat(document.getElementById('mat-boqqty').value) || 0;
+    const boqPrice = parseFloat(document.getElementById('mat-boqprice').value) || 0;
+    const updatePrice = parseFloat(document.getElementById('mat-updateprice').value) || boqPrice;
+    if (!name || !unit) { ERP.toast('Please enter a material name and unit.', true); return; }
+    try {
+      await ERP.apiPost('saveMaterial', { id, name, unit, boqQty, boqPrice, updatePrice });
+      await ERP.apiGet();
+      closeModal();
+      ERP.render();
+      ERP.toast('Material saved.');
+    } catch (e) { /* toast already shown */ }
+  }
+
+  async function confirmDeleteMaterial(id) {
+    const m = Calc.materialById(id);
+    if (!confirm(`Delete "${m ? m.name : 'this material'}"? Entries logged against it will remain but show as unlinked.`)) return;
+    try {
+      await ERP.apiPost('deleteMaterial', { id });
+      await ERP.apiGet();
+      ERP.render();
+      ERP.toast('Material deleted.');
+    } catch (e) { /* toast already shown */ }
+  }
+
+  async function loadSeedMaterials() {
+    try {
+      await ERP.apiPost('seedMaterials', ERP.SEED_MATERIALS || []);
+      await ERP.apiGet();
+      ERP.render();
+      ERP.toast('Standard BOQ list loaded.');
+    } catch (e) { /* toast already shown */ }
+  }
+
+  // ---------------- Entries ----------------
+  function updateEntryPreview() {
+    const sel = document.getElementById('en-material');
+    const priceInput = document.getElementById('en-price');
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && (priceInput.value === '' || priceInput.dataset.auto !== 'false')) {
+      priceInput.value = opt.dataset.price;
+      priceInput.dataset.auto = 'true';
+    }
+    const qty = parseFloat(document.getElementById('en-qty').value) || 0;
+    const price = parseFloat(priceInput.value) || 0;
+    const advance = parseFloat(document.getElementById('en-advance').value) || 0;
+    const credit = parseFloat(document.getElementById('en-credit').value) || 0;
+    const actual = parseFloat(document.getElementById('en-actual').value) || 0;
+    const value = qty * price;
+    const due = value - advance - credit - actual;
+    document.getElementById('en-preview-value').textContent = ERP.fmt(value);
+    document.getElementById('en-preview-due').textContent = ERP.fmt(due);
+  }
+
+  async function submitEntry() {
+    const materialId = document.getElementById('en-material').value;
+    const date = document.getElementById('en-date').value || ERP.todayStr();
+    const unitPrice = parseFloat(document.getElementById('en-price').value) || 0;
+    const qty = parseFloat(document.getElementById('en-qty').value) || 0;
+    const advance = parseFloat(document.getElementById('en-advance').value) || 0;
+    const credit = parseFloat(document.getElementById('en-credit').value) || 0;
+    const actualPayment = parseFloat(document.getElementById('en-actual').value) || 0;
+    const remarks = document.getElementById('en-remarks').value.trim();
+    if (!materialId || qty <= 0) { ERP.toast('Please select a material and enter a quantity greater than 0.', true); return; }
+    try {
+      await ERP.apiPost('addEntry', { date, materialId, unitPrice, qty, advance, credit, actualPayment, enteredBy: ERP.state.userName, remarks });
+      await ERP.apiGet();
+      ERP.render();
+      ERP.toast('Entry saved.');
+    } catch (e) { /* toast already shown */ }
+  }
+
+  async function deleteEntry(id) {
+    if (!confirm('Delete this entry? This cannot be undone.')) return;
+    try {
+      await ERP.apiPost('deleteEntry', { id });
+      await ERP.apiGet();
+      ERP.render();
+      ERP.toast('Entry deleted.');
+    } catch (e) { /* toast already shown */ }
+  }
+
+  // ---------------- CSV export ----------------
+  function downloadCSV(filename, rows) {
+    const csv = rows.map(r => r.map(v => {
+      const s = String(v == null ? '' : v);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportEntriesCSV() {
+    const rows = [['Date', 'Material', 'Unit', 'Qty', 'Unit Price', 'Value', 'Advance', 'Credit', 'Actual Payment', 'Due', 'Entered By', 'Remarks']];
+    ERP.state.entries.forEach(e => {
+      const m = Calc.materialById(e.materialId);
+      rows.push([e.date, m ? m.name : '', m ? m.unit : '', e.qty, e.unitPrice, e.value, e.advance, e.credit, e.actualPayment, e.due, e.enteredBy, e.remarks]);
+    });
+    downloadCSV('materials_received_log.csv', rows);
+  }
+
+  function exportBoqCSV() {
+    const stats = Calc.allMaterialStats();
+    const rows = [['SL', 'Material', 'Unit', 'BOQ Qty', 'BOQ Amount', 'Received Qty', 'Received Value', '% of BOQ', 'Remaining Value', 'Advance', 'Credit', 'Actual Paid', 'Due', 'Outstanding']];
+    stats.forEach((s, i) => rows.push([i + 1, s.material.name, s.material.unit, s.material.boqQty, s.boqAmount.toFixed(2), s.receivedQty, s.receivedValue.toFixed(2), s.pctReceived.toFixed(2), s.remainingValue.toFixed(2), s.advance, s.credit, s.actual, s.due, s.outstanding]));
+    downloadCSV('boq_summary_report.csv', rows);
+  }
+
+  function exportMonthlyCSV() {
+    const months = Calc.monthlySummary();
+    const rows = [['Month', 'Entries', 'Total Value', 'Advance', 'Credit', 'Actual Paid', 'Due']];
+    months.forEach(m => rows.push([Calc.monthLabel(m.month), m.count, m.value.toFixed(2), m.advance, m.credit, m.actual, m.due]));
+    downloadCSV('monthly_summary_report.csv', rows);
+  }
+
+  // ---------------- Settings ----------------
+  function confirmDisconnect() {
+    if (!confirm('Disconnect this device? You will need the Web App URL and PIN to reconnect.')) return;
+    ERP.resetSetup();
+  }
+
+  return {
+    openModal, closeModal, openMaterialModal, saveMaterialForm, confirmDeleteMaterial, loadSeedMaterials,
+    updateEntryPreview, submitEntry, deleteEntry,
+    exportEntriesCSV, exportBoqCSV, exportMonthlyCSV, confirmDisconnect
+  };
+})();
+
+
+/* ===== app.js ===== */
+/* =========================================================================
+   INFINITY MATERIALS ERP — Application Logic
+   Backend: Google Apps Script Web App (see Code.gs / SETUP-GUIDE.md)
+   ========================================================================= */
+
+const ERP = (function () {
+
+  const SEED_MATERIALS = [{"name": "Bricks", "unit": "Nos", "boqPrice": 15, "boqQty": 1000000, "updatePrice": 15}, {"name": "Cement", "unit": "Bag", "boqPrice": 505, "boqQty": 82897.101, "updatePrice": 505}, {"name": "Sand (F.M. 1.2)", "unit": "Cft", "boqPrice": 20, "boqQty": 437709.32, "updatePrice": 20}, {"name": "Sand (F.M. 2.2)  (Patent Stone)", "unit": "Cft", "boqPrice": 98, "boqQty": 3328.425, "updatePrice": 98}, {"name": "Crushed Stone Chips (Patent Stone)", "unit": "Cft", "boqPrice": 228, "boqQty": 13313.7, "updatePrice": 228}, {"name": "MK Box", "unit": "Unit", "boqPrice": 8684, "boqQty": 25.75, "updatePrice": 8684}, {"name": "Door Frame Fitting (Internal)", "unit": "Nos", "boqPrice": 9500, "boqQty": 1315, "updatePrice": 9500}, {"name": "Door Frame Fitting (Main)", "unit": "Nos", "boqPrice": 17000, "boqQty": 99, "updatePrice": 17000}, {"name": "Cat/Fox Door Frame Fixing", "unit": "Nos", "boqPrice": 1300, "boqQty": 471, "updatePrice": 1300}, {"name": "CPVC Sanitary Wiring (Kitchen, Toilet)", "unit": "Unit", "boqPrice": 220000, "boqQty": 124, "updatePrice": 220000}, {"name": "Others Sanitary & Plumbing Work (Vertical, Upvc)", "unit": "Unit", "boqPrice": 150000, "boqQty": 118.0, "updatePrice": 150000}, {"name": "Wall Tiles Toilet & Kitchen", "unit": "SFt", "boqPrice": 200, "boqQty": 226486, "updatePrice": 200}, {"name": "Floor Tiles Toilet", "unit": "SFt", "boqPrice": 200, "boqQty": 56413, "updatePrice": 200}, {"name": "General Floor Tiles (Duplex & Penthouse)", "unit": "SFt", "boqPrice": 220, "boqQty": 320105, "updatePrice": 220}, {"name": "Floor Tiles for Corridor & Planter Box", "unit": "SFt", "boqPrice": 380, "boqQty": 241100, "updatePrice": 380}, {"name": "Marble For Duplex Stair", "unit": "Sft", "boqPrice": 700, "boqQty": 38150, "updatePrice": 700}, {"name": "Tiles For Lift Wall", "unit": "Sft", "boqPrice": 400, "boqQty": 15200, "updatePrice": 400}, {"name": "Tiles for Main Stair & Lobby", "unit": "Sft", "boqPrice": 250, "boqQty": 56600, "updatePrice": 250}, {"name": "Marble Work", "unit": "Sft", "boqPrice": 680, "boqQty": 70000, "updatePrice": 680}, {"name": "Granite Work (Kitchen and Aluminum Bottom)", "unit": "Sft", "boqPrice": 700, "boqQty": 110088.0, "updatePrice": 700}, {"name": "Tiles For Ground Floor", "unit": "Sft", "boqPrice": 220, "boqQty": 88000, "updatePrice": 220}, {"name": "Tiles For Basement", "unit": "Sft", "boqPrice": 150, "boqQty": 42468, "updatePrice": 150}, {"name": "Tiles For Roof Top", "unit": "Sft", "boqPrice": 220, "boqQty": 28000, "updatePrice": 220}, {"name": "SDB & Junction Box", "unit": "Unit", "boqPrice": 20290, "boqQty": 134, "updatePrice": 20290}, {"name": "Electric Cabling", "unit": "Unit", "boqPrice": 559634, "boqQty": 213, "updatePrice": 559634}, {"name": "Door Shutter Fixing (Internal)", "unit": "Nos", "boqPrice": 4500, "boqQty": 2945, "updatePrice": 4500}, {"name": "Door Shutter Fixing (Main)", "unit": "Nos", "boqPrice": 84000, "boqQty": 211, "updatePrice": 84000}, {"name": "Cat/Fox Door Shutter", "unit": "Nos", "boqPrice": 3500, "boqQty": 1054, "updatePrice": 3500}, {"name": "Weather Coat", "unit": "Liter", "boqPrice": 366, "boqQty": 8266.05, "updatePrice": 366}, {"name": "Plastic Paint", "unit": "Liter", "boqPrice": 286, "boqQty": 30977.94, "updatePrice": 286}, {"name": "Sealer", "unit": "Liter", "boqPrice": 213, "boqQty": 34927.151, "updatePrice": 213}, {"name": "All Purpose Putty", "unit": "Kgs", "boqPrice": 83, "boqQty": 137353.965, "updatePrice": 83}, {"name": "CP Fittings & Sanitary Fixtures", "unit": "Unit", "boqPrice": 500000, "boqQty": 216, "updatePrice": 500000}, {"name": "Switch Socket & Circuit Breaker", "unit": "Unit", "boqPrice": 136141, "boqQty": 214, "updatePrice": 136141}, {"name": "Ready Mix", "unit": "Cft", "boqPrice": 330, "boqQty": 52000, "updatePrice": 330}, {"name": "Deformed Bar", "unit": "Ton", "boqPrice": 91000, "boqQty": 194, "updatePrice": 91000}];
+
+  let state = {
+    apiUrl: localStorage.getItem('erp_api_url') || '',
+    pin: localStorage.getItem('erp_pin') || '',
+    userName: sessionStorage.getItem('erp_user') || '',
+    materials: [],
+    entries: [],
+    view: 'dashboard',
+    lastSync: null,
+    charts: {}
+  };
+
+  // ---------------- Utilities ----------------
+  function fmt(n) {
+    n = Number(n) || 0;
+    return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+  function fmtQty(n) {
+    n = Number(n) || 0;
+    return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  }
+  function pct(a, b) {
+    if (!b) return 0;
+    return (a / b) * 100;
+  }
+  function uid() {
+    return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  }
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+  function toast(msg, isErr) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isErr ? ' err' : '');
+    setTimeout(() => { t.className = 'toast'; }, 3200);
+  }
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function setSyncStatus(status) {
+    const dot = document.getElementById('sync-dot');
+    const text = document.getElementById('sync-text');
+    if (!dot) return;
+    if (status === 'syncing') { dot.className = 'dot syncing'; text.textContent = 'Syncing…'; }
+    else if (status === 'error') { dot.className = 'dot syncing'; text.textContent = 'Connection issue'; }
+    else { dot.className = 'dot'; text.textContent = 'Live'; }
+  }
+
+  // ---------------- API layer ----------------
+  async function apiGet() {
+    setSyncStatus('syncing');
+    try {
+      const res = await fetch(state.apiUrl + '?action=getData');
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Load failed');
+      state.materials = (data.materials || []).map(normalizeMaterial);
+      state.entries = (data.entries || []).map(normalizeEntry);
+      state.lastSync = new Date();
+      setSyncStatus('ok');
+      return true;
+    } catch (err) {
+      console.error(err);
+      setSyncStatus('error');
+      toast('Could not reach the shared database. Check Settings → Connection.', true);
+      return false;
+    }
+  }
+
+  async function apiPost(action, payload) {
+    setSyncStatus('syncing');
+    try {
+      const res = await fetch(state.apiUrl, {
+        method: 'POST',
+        body: JSON.stringify({ action, payload })
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'Request failed');
+      setSyncStatus('ok');
+      return data;
+    } catch (err) {
+      console.error(err);
+      setSyncStatus('error');
+      toast('Save failed — check your connection and try again.', true);
+      throw err;
+    }
+  }
+
+  function normalizeMaterial(m) {
+    return {
+      id: m.ID, name: m.Name, unit: m.Unit,
+      boqQty: Number(m.BOQ_Qty) || 0,
+      boqPrice: Number(m.BOQ_Price) || 0,
+      updatePrice: Number(m.Update_Price) || 0
+    };
+  }
+  function normalizeEntry(e) {
+    return {
+      id: e.ID, date: e.Date, materialId: e.MaterialID,
+      unitPrice: Number(e.UnitPrice) || 0, qty: Number(e.Qty) || 0,
+      value: Number(e.Value) || 0, advance: Number(e.Advance) || 0,
+      credit: Number(e.Credit) || 0, actualPayment: Number(e.ActualPayment) || 0,
+      due: Number(e.Due) || 0, enteredBy: e.EnteredBy || '', remarks: e.Remarks || '',
+      createdAt: e.CreatedAt
+    };
+  }
+
+  // ---------------- Gate / Auth ----------------
+  function initGate() {
+    if (!state.apiUrl) {
+      showSetup();
+    } else if (!state.userName) {
+      showLogin();
+    } else {
+      enterApp();
+    }
+  }
+  function showSetup() {
+    document.getElementById('gate-setup').style.display = 'block';
+    document.getElementById('gate-login').style.display = 'none';
+    if (state.apiUrl) document.getElementById('setup-url').value = state.apiUrl;
+  }
+  function showLogin() {
+    document.getElementById('gate-setup').style.display = 'none';
+    document.getElementById('gate-login').style.display = 'block';
+  }
+  async function saveSetup() {
+    const url = document.getElementById('setup-url').value.trim();
+    const pin = document.getElementById('setup-pin').value.trim();
+    const errEl = document.getElementById('setup-error');
+    errEl.style.display = 'none';
+    if (!url || !url.startsWith('http')) {
+      errEl.textContent = 'Please paste a valid Apps Script Web App URL.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!pin) {
+      errEl.textContent = 'Please set an access PIN for your team.';
+      errEl.style.display = 'block';
+      return;
+    }
+    state.apiUrl = url;
+    localStorage.setItem('erp_api_url', url);
+    // Test connection
+    const ok = await apiGet();
+    if (!ok) {
+      errEl.textContent = 'Could not connect. Double-check the URL is deployed with "Anyone" access.';
+      errEl.style.display = 'block';
+      localStorage.removeItem('erp_api_url');
+      state.apiUrl = '';
+      return;
+    }
+    // Seed materials if the sheet is empty
+    if (state.materials.length === 0) {
+      try {
+        await apiPost('seedMaterials', SEED_MATERIALS);
+        await apiGet();
+      } catch (e) { /* non-fatal */ }
+    }
+    localStorage.setItem('erp_pin', pin);
+    state.pin = pin;
+    showLogin();
+  }
+  function resetSetup() {
+    localStorage.removeItem('erp_api_url');
+    localStorage.removeItem('erp_pin');
+    sessionStorage.removeItem('erp_user');
+    state.apiUrl = ''; state.pin = ''; state.userName = '';
+    showSetup();
+  }
+  function login() {
+    const name = document.getElementById('login-name').value.trim();
+    const pin = document.getElementById('login-pin').value.trim();
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+    if (!name) { errEl.textContent = 'Please enter your name.'; errEl.style.display = 'block'; return; }
+    if (pin !== state.pin) { errEl.textContent = 'Incorrect PIN.'; errEl.style.display = 'block'; return; }
+    state.userName = name;
+    sessionStorage.setItem('erp_user', name);
+    enterApp();
+  }
+  function logout() {
+    sessionStorage.removeItem('erp_user');
+    state.userName = '';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('gate').style.display = 'flex';
+    document.getElementById('login-name').value = '';
+    document.getElementById('login-pin').value = '';
+    showLogin();
+  }
+  async function enterApp() {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('foot-username').textContent = state.userName;
+    await apiGet();
+    goTo('dashboard');
+  }
+
+  async function refresh() {
+    const ok = await apiGet();
+    if (ok) { render(); toast('Data refreshed.'); }
+  }
+
+  // ---------------- Navigation ----------------
+  const titles = {
+    dashboard: 'Dashboard', materials: 'Materials & BOQ Master',
+    entry: 'Materials Received — Data Entry', reports: 'Reports', settings: 'Settings'
+  };
+  function goTo(view) {
+    state.view = view;
+    document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+    document.getElementById('page-title').textContent = titles[view];
+    document.getElementById('sidebar').classList.remove('open');
+    render();
+  }
+  function render() {
+    const root = document.getElementById('view-root');
+    if (state.view === 'dashboard') root.innerHTML = Views.dashboard();
+    if (state.view === 'materials') root.innerHTML = Views.materials();
+    if (state.view === 'entry') root.innerHTML = Views.entry();
+    if (state.view === 'reports') root.innerHTML = Views.reports();
+    if (state.view === 'settings') root.innerHTML = Views.settings();
+    if (state.view === 'dashboard') Charts.renderDashboardCharts();
+    if (state.view === 'reports') Views.reportsPostRender && Views.reportsPostRender();
+  }
+
+  return {
+    state, fmt, fmtQty, pct, uid, todayStr, toast, escapeHtml,
+    apiGet, apiPost, initGate, saveSetup, resetSetup, login, logout, enterApp, refresh, goTo, render,
+    SEED_MATERIALS: SEED_MATERIALS
+  };
+})();
+
+window.addEventListener('DOMContentLoaded', () => ERP.initGate());
+
+</script>
+</body>
+</html>
